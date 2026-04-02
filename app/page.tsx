@@ -49,6 +49,11 @@ function formatDate(iso: string) {
 
 const CATEGORY_ORDER: Category[] = ["script", "fflags"];
 
+const SECTION_IDS: Record<Category, string> = {
+  script: "scripts",
+  fflags: "fflags",
+};
+
 async function copyText(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -99,7 +104,7 @@ function MediaPreview({ media, title }: { media: Media; title: string }) {
         borderRadius: 14,
         border: "1px solid rgba(255,255,255,0.14)",
         overflow: "hidden",
-        background: "rgba(0,0,0,0.20)",
+        background: "rgba(0,0,0,0.35)",
       }}
     >
       <Image
@@ -151,97 +156,128 @@ export default function Page() {
     ) as Record<Category, DisplayItem[]>;
   }, [allScripts]);
 
+  const scriptCount = byCategory.script?.length ?? 0;
+  const fflagsCount = byCategory.fflags?.length ?? 0;
+  const totalCount = allScripts.length;
+
   return (
     <main>
-      <section className="hero">
+      <section className="hero-shell">
+        <p className="welcome-comment">// Welcome to the hub</p>
         <h1 className="h1">Fuck SLS HUD</h1>
         <p className="p">
           {loadState === "loading"
-            ? "Loading…"
+            ? "Loading universal entries…"
             : loadState === "error"
-              ? "Load failed."
-              : "Universal scripts load from GitHub. Copy button copies loadstrings/flags."}
+            ? "Could not load shared scripts from GitHub."
+            : "An elite layout for loaders, tuned fastflags, and copy-paste presets. Sign in with Discord to browse; admins curate what everyone sees."}
         </p>
 
         <div className="badges">
-          <span className="badge">script</span>
-          <span className="badge">fflags</span>
+          <span className="badge">Scripts</span>
+          <span className="badge">Fflags</span>
+          <span className="badge">Copy</span>
+          <span className="badge">Discord</span>
+        </div>
+
+        <div className="stats-strip">
+          <div className="stat-tile">
+            <div className="stat-icon" aria-hidden="true">
+              ◧
+            </div>
+            <div className="stat-label">Scripts</div>
+            <div className="stat-value">{scriptCount}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="stat-icon" aria-hidden="true">
+              ◫
+            </div>
+            <div className="stat-label">Fflags</div>
+            <div className="stat-value">{fflagsCount}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="stat-icon" aria-hidden="true">
+              —
+            </div>
+            <div className="stat-label">Entries</div>
+            <div className="stat-value">{totalCount}</div>
+          </div>
         </div>
       </section>
 
       {isAdmin && (
-        <AdminPanel scripts={allScripts} onScriptsUpdated={(items) => setUniversalScripts(items as DisplayItem[])} />
+        <AdminPanel
+          scripts={allScripts}
+          onScriptsUpdated={(items) => setUniversalScripts(items as DisplayItem[])}
+        />
       )}
 
-      <section id="scripts" className="section">
-        <h2 className="sectionTitle">Scripts</h2>
+      {CATEGORY_ORDER.map((cat) => (
+        <section key={cat} id={SECTION_IDS[cat]} className="section">
+          <h2 className="sectionTitle">
+            {cat} ({byCategory[cat].length})
+          </h2>
 
-        {CATEGORY_ORDER.map((cat) => (
-          <div key={cat} className="section" style={{ marginTop: 14 }}>
-            <h3 className="sectionTitle" style={{ textTransform: "uppercase", letterSpacing: 1 }}>
-              {cat} ({byCategory[cat].length})
-            </h3>
+          <div className="grid">
+            {byCategory[cat].map((s) => (
+              <article key={s.slug} className="card">
+                <div className="cardTop">
+                  <h3 className="cardTitle">{s.name}</h3>
+                  <span className="pill">{s.category}</span>
+                </div>
 
-            <div className="grid">
-              {byCategory[cat].map((s) => (
-                <article key={s.slug} className="card">
-                  <div className="cardTop">
-                    <h3 className="cardTitle">{s.name}</h3>
-                    <span className="pill">{s.category}</span>
-                  </div>
+                <p className="cardDesc">{s.description}</p>
 
-                  <p className="cardDesc">{s.description}</p>
+                {s.media && <MediaPreview media={s.media} title={s.name} />}
 
-                  {s.media && <MediaPreview media={s.media} title={s.name} />}
-
-                  {s.script && (
-                    <div style={{ margin: "0 0 12px" }}>
-                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <CopyButton text={s.script} />
-                      </div>
-
-                      <pre
-                        style={{
-                          margin: "10px 0 0",
-                          padding: 12,
-                          borderRadius: 12,
-                          border: "1px solid rgba(255,255,255,0.14)",
-                          background: "rgba(0,0,0,0.20)",
-                          color: "rgba(255,255,255,0.86)",
-                          overflowX: "auto",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                          fontSize: 12,
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        <code>{s.script}</code>
-                      </pre>
+                {s.script && (
+                  <div style={{ margin: "0 0 12px" }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <CopyButton text={s.script} />
                     </div>
-                  )}
 
-                  <div className="meta">
-                    {s.tags.map((t) => (
-                      <span key={t} className="kv">
-                        #{t}
-                      </span>
-                    ))}
-                    <span className="kv">Updated {formatDate(s.updated)}</span>
-
-                    <div className="links">
-                      {s.repoUrl && (
-                        <a className="btn" href={s.repoUrl} target="_blank" rel="noreferrer">
-                          Repo
-                        </a>
-                      )}
-                    </div>
+                    <pre
+                      style={{
+                        margin: "10px 0 0",
+                        padding: 12,
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        background: "rgba(0,0,0,0.45)",
+                        color: "rgba(255,255,255,0.88)",
+                        overflowX: "auto",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                        fontFamily: "var(--font-mono)",
+                      }}
+                    >
+                      <code>{s.script}</code>
+                    </pre>
                   </div>
-                </article>
-              ))}
-            </div>
+                )}
+
+                <div className="meta">
+                  {s.tags.map((t) => (
+                    <span key={t} className="kv">
+                      #{t}
+                    </span>
+                  ))}
+                  <span className="kv">Updated {formatDate(s.updated)}</span>
+
+                  <div className="links">
+                    {s.repoUrl && (
+                      <a className="btn" href={s.repoUrl} target="_blank" rel="noreferrer">
+                        Repo
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
-        ))}
-      </section>
+        </section>
+      ))}
     </main>
   );
 }
