@@ -15,7 +15,7 @@ export default function LoginPage() {
       >
         <section className="hero" style={{ marginTop: 0 }}>
           <div className="pill" style={{ display: "inline-flex", marginBottom: 12 }}>
-            Secure access
+            Script hub
           </div>
 
           <h1 className="h1" style={{ marginBottom: 10 }}>
@@ -23,8 +23,8 @@ export default function LoginPage() {
           </h1>
 
           <p className="p" style={{ marginBottom: 18 }}>
-            You must be logged in to view the site. If you’re blacklisted, you’ll be blocked after
-            sign-in.
+            This is the script hub: loaders, flags, and presets in one layout. Sign in with Discord to
+            open the list; blocked accounts can’t use the site after login.
           </p>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -49,18 +49,18 @@ export default function LoginPage() {
         </section>
 
         <aside className="card" style={{ gridColumn: "span 1" }}>
-          <div style={{ fontWeight: 750, marginBottom: 10 }}>Why Discord?</div>
+          <div style={{ fontWeight: 750, marginBottom: 10 }}>Why use this hub?</div>
 
           <ul style={{ margin: 0, paddingLeft: 18, color: "rgba(255,255,255,0.72)", lineHeight: 1.7 }}>
-            <li>Quick sign-in, no password here</li>
-            <li>Admins can manage scripts & blacklist</li>
-            <li>Safer than sharing private links</li>
+            <li>One place for scripts and fastflags—no hunting through DMs or random links</li>
+            <li>Copy-paste loadstrings and JSON presets with a single click</li>
+            <li>Admins keep the list updated and can remove bad entries</li>
+            <li>Discord sign-in keeps the hub usable only for people who should see it</li>
           </ul>
 
           <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
             <div className="kv">
-              Tip: if login fails, check Discord OAuth redirect URL ends with{" "}
-              <code>/api/auth/callback/discord</code>
+              Tip: after you sign in, bookmark this page so you can open the hub in one tap.
             </div>
           </div>
         </aside>
