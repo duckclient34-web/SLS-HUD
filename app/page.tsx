@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import AdminPanel, { type ScriptItem } from "./components/AdminPanel";
 
-type Category = "script" | "fflags" | "desync" | "async";
+type Category = "script" | "fflags";
 type Media = { type: "image"; src: string; alt: string };
 type DisplayItem = ScriptItem & { media?: Media };
 
@@ -47,7 +47,7 @@ function formatDate(iso: string) {
   }
 }
 
-const CATEGORY_ORDER: Category[] = ["script", "fflags", "desync", "async"];
+const CATEGORY_ORDER: Category[] = ["script", "fflags"];
 
 async function copyText(text: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -141,7 +141,7 @@ export default function Page() {
   const allScripts = useMemo(() => {
     const bySlug = new Map<string, DisplayItem>();
     for (const s of BASE_SCRIPTS) bySlug.set(s.slug, s);
-    for (const s of universalScripts) bySlug.set(s.slug, s); // universal overrides base if same slug
+    for (const s of universalScripts) bySlug.set(s.slug, s);
     return Array.from(bySlug.values());
   }, [universalScripts]);
 
@@ -156,24 +156,21 @@ export default function Page() {
       <section className="hero">
         <h1 className="h1">Fuck SLS HUD</h1>
         <p className="p">
-          Universal scripts load from GitHub. {loadState === "loading" ? "Loading…" : loadState === "error" ? "Load failed." : ""}
+          {loadState === "loading"
+            ? "Loading…"
+            : loadState === "error"
+              ? "Load failed."
+              : "Universal scripts load from GitHub. Copy button copies loadstrings/flags."}
         </p>
 
         <div className="badges">
           <span className="badge">script</span>
           <span className="badge">fflags</span>
-          <span className="badge">desync</span>
-          <span className="badge">async</span>
         </div>
       </section>
 
       {isAdmin && (
-        <AdminPanel
-          count={universalScripts.length}
-          onAdded={(items) => {
-            setUniversalScripts(items as DisplayItem[]);
-          }}
-        />
+        <AdminPanel scripts={allScripts} onScriptsUpdated={(items) => setUniversalScripts(items as DisplayItem[])} />
       )}
 
       <section id="scripts" className="section">
