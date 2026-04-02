@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useMemo, useState } from "react";
 
 type Category = "script" | "fflags" | "desync" | "async";
 
@@ -243,6 +246,50 @@ function formatDate(iso: string) {
 
 const CATEGORY_ORDER: Category[] = ["script", "fflags", "desync", "async"];
 
+async function copyText(text: string) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  // Fallback (older browsers / permissions)
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  ta.style.top = "-9999px";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [state, setState] = useState<"idle" | "copied" | "error">("idle");
+
+  return (
+    <button
+      type="button"
+      className="btn btnPrimary"
+      onClick={async () => {
+        try {
+          await copyText(text);
+          setState("copied");
+          window.setTimeout(() => setState("idle"), 1200);
+        } catch {
+          setState("error");
+          window.setTimeout(() => setState("idle"), 1500);
+        }
+      }}
+      aria-label="Copy script to clipboard"
+      style={{ cursor: "pointer" }}
+    >
+      {state === "copied" ? "Copied" : state === "error" ? "Copy failed" : "Copy"}
+    </button>
+  );
+}
+
 function MediaPreview({ media, title }: { media: Media; title: string }) {
   return (
     <div
@@ -267,14 +314,16 @@ function MediaPreview({ media, title }: { media: Media; title: string }) {
 }
 
 export default function Page() {
-  const byCategory = Object.fromEntries(
-    CATEGORY_ORDER.map((c) => [c, SCRIPTS.filter((s) => s.category === c)])
-  ) as Record<Category, ScriptItem[]>;
+  const byCategory = useMemo(() => {
+    return Object.fromEntries(
+      CATEGORY_ORDER.map((c) => [c, SCRIPTS.filter((s) => s.category === c)])
+    ) as Record<Category, ScriptItem[]>;
+  }, []);
 
   return (
     <main>
       <section className="hero">
-        <h1 className="h1">Script Showcase</h1>
+        <h1 className="h1">Fuck SLS HUD</h1>
         <p className="p">
           Categories: <code>script</code>, <code>fflags</code>, <code>desync</code>,{" "}
           <code>async</code>. Edit <code>SCRIPTS</code> to add more.
@@ -313,23 +362,29 @@ export default function Page() {
                   {s.media && <MediaPreview media={s.media} title={s.name} />}
 
                   {s.script && (
-                    <pre
-                      style={{
-                        margin: "0 0 12px",
-                        padding: 12,
-                        borderRadius: 12,
-                        border: "1px solid rgba(255,255,255,0.14)",
-                        background: "rgba(0,0,0,0.20)",
-                        color: "rgba(255,255,255,0.86)",
-                        overflowX: "auto",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        fontSize: 12,
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      <code>{s.script}</code>
-                    </pre>
+                    <div style={{ margin: "0 0 12px" }}>
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <CopyButton text={s.script} />
+                      </div>
+
+                      <pre
+                        style={{
+                          margin: "10px 0 0",
+                          padding: 12,
+                          borderRadius: 12,
+                          border: "1px solid rgba(255,255,255,0.14)",
+                          background: "rgba(0,0,0,0.20)",
+                          color: "rgba(255,255,255,0.86)",
+                          overflowX: "auto",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          fontSize: 12,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <code>{s.script}</code>
+                      </pre>
+                    </div>
                   )}
 
                   <div className="meta">
