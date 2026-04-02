@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type Category = "script" | "fflags" | "desync" | "async";
+type Category = "script" | "fflags";
 
 export type ScriptItem = {
   slug: string;
@@ -35,12 +35,13 @@ function todayISO() {
 }
 
 export default function AdminPanel({
-  count,
-  onAdded,
+  scripts,
+  onScriptsUpdated,
 }: {
-  count: number;
-  onAdded: (items: ScriptItem[]) => void;
+  scripts: ScriptItem[];
+  onScriptsUpdated: (items: ScriptItem[]) => void;
 }) {
+  // add script form
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("script");
   const [description, setDescription] = useState("");
@@ -53,128 +54,247 @@ export default function AdminPanel({
 
   const suggestedSlug = useMemo(() => slugify(name) || "new-script", [name]);
 
+  // blacklist
+  const [blacklist, setBlacklist] = useState<string[]>([]);
+  const [blId, setBlId] = useState("");
+  const [blStatus, setBlStatus] = useState<"idle" | "saving" | "error">("idle");
+
+  async function reloadBlacklist() {
+    try {
+      const res = await fetch("/api/blacklist", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.ids)) setBlacklist(data.ids);
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    reloadBlacklist();
+  }, []);
+
   return (
     <div className="hero" style={{ marginTop: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <div style={{ fontWeight: 750, marginBottom: 6 }}>Admin: Add a script (universal)</div>
-          <div style={{ color: "rgba(255,255,255,0.68)", fontSize: 13 }}>
-            Saves to GitHub for everyone. Current universal scripts: {count}
-          </div>
-        </div>
-        <span className="pill">
-          {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : status === "error" ? "Save failed" : "Ready"}
-        </span>
+      <div style={{ fontWeight: 750, marginBottom: 6 }}>Admin Panel</div>
+      <div style={{ color: "rgba(255,255,255,0.68)", fontSize: 13 }}>
+        Add/delete scripts universally + manage blacklist.
       </div>
 
-      <div className="grid" style={{ marginTop: 12 }}>
-        <div className="card" style={{ gridColumn: "span 12" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 10 }}>
-            <div style={{ gridColumn: "span 6" }}>
-              <div className="sectionTitle">Name</div>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. My Script" style={inputStyle} />
-            </div>
+      {/* Add script */}
+      <div className="card" style={{ gridColumn: "span 12", marginTop: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div className="sectionTitle">Add a script (universal)</div>
+          <span className="pill">
+            {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : status === "error" ? "Save failed" : "Ready"}
+          </span>
+        </div>
 
-            <div style={{ gridColumn: "span 3" }}>
-              <div className="sectionTitle">Category</div>
-              <select value={category} onChange={(e) => setCategory(e.target.value as Category)} style={inputStyle}>
-                <option value="script">script</option>
-                <option value="fflags">fflags</option>
-                <option value="desync">desync</option>
-                <option value="async">async</option>
-              </select>
-            </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 10, marginTop: 10 }}>
+          <div style={{ gridColumn: "span 6" }}>
+            <div className="sectionTitle">Name</div>
+            <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+          </div>
 
-            <div style={{ gridColumn: "span 3" }}>
-              <div className="sectionTitle">Updated (YYYY-MM-DD)</div>
-              <input value={updated} onChange={(e) => setUpdated(e.target.value)} style={inputStyle} />
-            </div>
+          <div style={{ gridColumn: "span 3" }}>
+            <div className="sectionTitle">Category</div>
+            <select value={category} onChange={(e) => setCategory(e.target.value as Category)} style={inputStyle}>
+              <option value="script">script</option>
+              <option value="fflags">fflags</option>
+            </select>
+          </div>
 
-            <div style={{ gridColumn: "span 12" }}>
-              <div className="sectionTitle">Description</div>
-              <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="1–2 lines" style={inputStyle} />
-            </div>
+          <div style={{ gridColumn: "span 3" }}>
+            <div className="sectionTitle">Updated</div>
+            <input value={updated} onChange={(e) => setUpdated(e.target.value)} style={inputStyle} />
+          </div>
 
-            <div style={{ gridColumn: "span 6" }}>
-              <div className="sectionTitle">Tags (comma separated)</div>
-              <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. fss, gk" style={inputStyle} />
-            </div>
+          <div style={{ gridColumn: "span 12" }}>
+            <div className="sectionTitle">Description</div>
+            <input value={description} onChange={(e) => setDescription(e.target.value)} style={inputStyle} />
+          </div>
 
-            <div style={{ gridColumn: "span 6" }}>
-              <div className="sectionTitle">Repo URL (optional)</div>
-              <input value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} placeholder="https://github.com/..." style={inputStyle} />
-            </div>
+          <div style={{ gridColumn: "span 6" }}>
+            <div className="sectionTitle">Tags (comma separated)</div>
+            <input value={tags} onChange={(e) => setTags(e.target.value)} style={inputStyle} />
+          </div>
 
-            <div style={{ gridColumn: "span 12" }}>
-              <div className="sectionTitle">Image path/URL (optional)</div>
-              <input value={imagePath} onChange={(e) => setImagePath(e.target.value)} placeholder="e.g. /scripts/duck-client.webp" style={inputStyle} />
-            </div>
+          <div style={{ gridColumn: "span 6" }}>
+            <div className="sectionTitle">Repo URL (optional)</div>
+            <input value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} style={inputStyle} />
+          </div>
 
-            <div style={{ gridColumn: "span 12" }}>
-              <div className="sectionTitle">Script / JSON (optional)</div>
-              <textarea value={script} onChange={(e) => setScript(e.target.value)} placeholder="Paste here" style={{ ...inputStyle, minHeight: 140, resize: "vertical" }} />
-            </div>
+          <div style={{ gridColumn: "span 12" }}>
+            <div className="sectionTitle">Image path/URL (optional)</div>
+            <input value={imagePath} onChange={(e) => setImagePath(e.target.value)} style={inputStyle} />
+          </div>
 
-            <div style={{ gridColumn: "span 12", display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-              <span className="kv">Slug: {suggestedSlug}</span>
+          <div style={{ gridColumn: "span 12" }}>
+            <div className="sectionTitle">Script / JSON (optional)</div>
+            <textarea value={script} onChange={(e) => setScript(e.target.value)} style={{ ...inputStyle, minHeight: 140, resize: "vertical" }} />
+          </div>
 
+          <div style={{ gridColumn: "span 12", display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <span className="kv">Slug: {suggestedSlug}</span>
+
+            <button
+              className="btn btnPrimary"
+              type="button"
+              onClick={async () => {
+                const item: ScriptItem = {
+                  slug: suggestedSlug,
+                  name: name.trim(),
+                  description: description.trim(),
+                  category,
+                  tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+                  updated: (updated || todayISO()).trim(),
+                  script: script.trim() || undefined,
+                  repoUrl: repoUrl.trim() || undefined,
+                  media: imagePath.trim()
+                    ? { type: "image", src: imagePath.trim(), alt: `${name.trim() || suggestedSlug} preview` }
+                    : undefined,
+                };
+
+                if (!item.name || !item.description) return;
+
+                setStatus("saving");
+                try {
+                  const res = await fetch("/api/scripts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(item),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data?.error || "Save failed");
+
+                  onScriptsUpdated(data.items as ScriptItem[]);
+                  setStatus("saved");
+                  window.setTimeout(() => setStatus("idle"), 1200);
+
+                  setName("");
+                  setDescription("");
+                  setTags("");
+                  setScript("");
+                  setRepoUrl("");
+                  setImagePath("");
+                  setCategory("script");
+                  setUpdated(todayISO());
+                } catch {
+                  setStatus("error");
+                  window.setTimeout(() => setStatus("idle"), 1500);
+                }
+              }}
+            >
+              Add script
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete script */}
+      <div className="card" style={{ gridColumn: "span 12", marginTop: 12 }}>
+        <div className="sectionTitle">Delete a script (universal)</div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 10, marginTop: 10 }}>
+          <div style={{ gridColumn: "span 12", display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {scripts.map((s) => (
               <button
-                className="btn btnPrimary"
+                key={s.slug}
                 type="button"
+                className="btn"
                 onClick={async () => {
-                  const item: ScriptItem = {
-                    slug: suggestedSlug,
-                    name: name.trim(),
-                    description: description.trim(),
-                    category,
-                    tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-                    updated: (updated || todayISO()).trim(),
-                    script: script.trim() || undefined,
-                    repoUrl: repoUrl.trim() || undefined,
-                    media: imagePath.trim()
-                      ? { type: "image", src: imagePath.trim(), alt: `${name.trim() || suggestedSlug} preview` }
-                      : undefined,
-                  };
-
-                  if (!item.name || !item.description) return;
-
-                  setStatus("saving");
+                  if (!confirm(`Delete "${s.name}" (${s.slug})?`)) return;
                   try {
-                    const res = await fetch("/api/scripts", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(item),
+                    const res = await fetch(`/api/scripts?slug=${encodeURIComponent(s.slug)}`, {
+                      method: "DELETE",
                     });
-
                     const data = await res.json();
-                    if (!res.ok) throw new Error(data?.error || "Save failed");
-
-                    onAdded(data.items as ScriptItem[]);
-                    setStatus("saved");
-                    window.setTimeout(() => setStatus("idle"), 1200);
-
-                    setName("");
-                    setDescription("");
-                    setTags("");
-                    setScript("");
-                    setRepoUrl("");
-                    setImagePath("");
-                    setCategory("script");
-                    setUpdated(todayISO());
+                    if (!res.ok) throw new Error(data?.error || "Delete failed");
+                    onScriptsUpdated(data.items as ScriptItem[]);
                   } catch {
-                    setStatus("error");
-                    window.setTimeout(() => setStatus("idle"), 1500);
+                    alert("Delete failed. Check Vercel logs.");
                   }
                 }}
               >
-                Add script
+                Delete: {s.name}
               </button>
-            </div>
+            ))}
           </div>
+        </div>
+      </div>
 
-          <div style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, marginTop: 10 }}>
-            Tip: Upload images to <code>public/scripts/</code> and use <code>/scripts/filename.webp</code>.
-          </div>
+      {/* Blacklist */}
+      <div className="card" style={{ gridColumn: "span 12", marginTop: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div className="sectionTitle">Blacklist Discord IDs (blocked from viewing)</div>
+          <span className="pill">
+            {blStatus === "saving" ? "Saving…" : blStatus === "error" ? "Failed" : "Ready"}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+          <input
+            value={blId}
+            onChange={(e) => setBlId(e.target.value)}
+            placeholder="Discord user ID"
+            style={{ ...inputStyle, width: 320 }}
+          />
+          <button
+            className="btn btnPrimary"
+            type="button"
+            onClick={async () => {
+              const id = blId.trim();
+              if (!id) return;
+              setBlStatus("saving");
+              try {
+                const res = await fetch("/api/blacklist", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.error || "Failed");
+                setBlacklist(data.ids as string[]);
+                setBlId("");
+                setBlStatus("idle");
+              } catch {
+                setBlStatus("error");
+                window.setTimeout(() => setBlStatus("idle"), 1500);
+              }
+            }}
+          >
+            Add to blacklist
+          </button>
+
+          <button className="btn" type="button" onClick={reloadBlacklist}>
+            Refresh
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+          {blacklist.map((id) => (
+            <button
+              key={id}
+              type="button"
+              className="btn"
+              onClick={async () => {
+                setBlStatus("saving");
+                try {
+                  const res = await fetch(`/api/blacklist?id=${encodeURIComponent(id)}`, {
+                    method: "DELETE",
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data?.error || "Failed");
+                  setBlacklist(data.ids as string[]);
+                  setBlStatus("idle");
+                } catch {
+                  setBlStatus("error");
+                  window.setTimeout(() => setBlStatus("idle"), 1500);
+                }
+              }}
+            >
+              Unblacklist: {id}
+            </button>
+          ))}
         </div>
       </div>
     </div>
