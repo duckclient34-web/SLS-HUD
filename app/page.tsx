@@ -1,25 +1,16 @@
-"use client";
+  "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import AdminPanel, { type ScriptItem } from "./components/AdminPanel";
 
 type Category = "script" | "fflags" | "desync" | "async";
 type Media = { type: "image"; src: string; alt: string };
 
-type ScriptItem = {
-  slug: string;
-  name: string;
-  description: string;
-  category: Category;
-  tags: string[];
-  updated: string;
-  script?: string;
-  repoUrl?: string;
-  media?: Media;
-};
+type DisplayItem = ScriptItem & { media?: Media };
 
-const SCRIPTS: ScriptItem[] = [
+const BASE_SCRIPTS: DisplayItem[] = [
   {
     slug: "duck-client",
     name: "Duck Client",
@@ -65,132 +56,6 @@ const SCRIPTS: ScriptItem[] = [
 }`,
   },
   {
-    slug: "no-reach-fastflag-better-with-async",
-    name: "No reach fastflag (Better effect with async)",
-    description: "FastFlags preset (no reach).",
-    category: "fflags",
-    tags: ["network", "async"],
-    updated: "2026-04-02",
-    script: `{
-  "FStringCoreScriptBacktraceErrorUploadToken": "null",
-  "FStringInGameMenuChromeForcedUserIds": "1353919681",
-  "FLogNetwork": "7",
-  "FIntLmsClientRollout2": "0",
-  "FIntTerrainArraySliceSize": "0",
-  "FIntRenderShadowIntensity": "0",
-  "FIntDefaultMeshCacheSizeMB": "256",
-  "FIntRakNetResendBufferArrayLength": "1024",
-  "FIntUGCValidationTorsoThresholdSide": "200",
-  "FIntUGCValidationTorsoThresholdBack": "200",
-  "FIntNetworkPhysicsLagCompensationMs": "120",
-  "FIntUGCValidationTorsoThresholdFront": "200",
-  "FIntUGCValidationLeftLegThresholdSide": "36",
-  "FIntUGCValidationLeftLegThresholdBack": "40",
-  "FIntUGCValidationLeftArmThresholdSide": "40",
-  "FIntUGCValidationLeftArmThresholdBack": "23",
-  "FIntUGCValidationRightLegThresholdSide": "76",
-  "FIntUGCValidationRightLegThresholdBack": "80",
-  "FIntUGCValidationRightArmThresholdSide": "80",
-  "FIntUGCValidationRightArmThresholdBack": "46",
-  "FIntUGCValidationLeftLegThresholdFront": "40",
-  "FIntUGCValidationLeftArmThresholdFront": "27",
-  "FIntUGCValidationRightLegThresholdFront": "80",
-  "FIntUGCValidationRightArmThresholdFront": "50",
-  "FIntRakNetDatagramMessageIdArrayLength": "1024",
-  "FIntMeshContentProviderForceCacheSize": "268435456",
-  "FIntEmotesAnimationsPerPlayerCacheSize": "16777216",
-  "FFlagBatchAssetApi": "True",
-  "FFlagTerrainEnable": "True",
-  "FFlagDisablePostFx": "True",
-  "FFlagOptimizeNetwork": "True",
-  "FFlagPreloadAllFonts": "True",
-  "FFlagLuaAppSystemBar": "False",
-  "FFlagDontCreatePingJob": "True",
-  "FFlagAdServiceEnabled": "False",
-  "FFlagReconnectDisabled": "True",
-  "FFlagTopBarUseNewBadge": "True",
-  "FFlagLuaAppExitModal2": "False",
-  "FFlagEnableInGameMenuV3": "True",
-  "FFlagDisableNewIGMinDUA": "True",
-  "FFlagEnableV3MenuABTest3": "True",
-  "FFlagGpuGeometryManager7": "True",
-  "FFlagRenderDisableShadows": "False",
-  "FFlagOptimizeServerTickRate": "True",
-  "FFlagOptimizeNetworkRouting": "True",
-  "FFlagLuaAppExitModalDoNotShow": "True",
-  "FFlagOptimizeNetworkTransport": "True",
-  "FFlagEnableInGameMenuControls": "False",
-  "FFlagEnableMenuControlsABTest": "False",
-  "FFlagCoreGuiTypeSelfViewPresent": "False",
-  "FFlagAnimationClipMemCacheEnabled": "True",
-  "FFlagEnableInGameMenuModernization": "False",
-  "FFlagEnableMenuModernizationABTest": "False",
-  "FFlagEnableInGameMenuChromeABTest2": "False",
-  "FFlagDebugForceFutureIsBrightPhase2": "True",
-  "FFlagDebugForceFutureIsBrightPhase3": "True",
-  "FFlagEnableMenuModernizationABTest2": "False",
-  "FFlagInGameMenuV1FullScreenTitleBar": "False",
-  "FFlagHandleAltEnterFullscreenManually": "False",
-  "FFlagEnableReportAbuseMenuRoactABTest2": "False",
-  "FFlagTaskSchedulerLimitTargetFpsTo2402": "False",
-  "DFStringRobloxAnalyticsURL": "null",
-  "DFStringHttpPointsReporterUrl": "null",
-  "DFStringAltHttpPointsReporterUrl": "null",
-  "DFStringTelegrafHTTPTransportUrl": "null",
-  "DFStringAltTelegrafHTTPTransportUrl": "null",
-  "DFStringCrashUploadToBacktraceBaseUrl": "null",
-  "DFStringAnalyticsEventStreamUrlEndpoint": "null",
-  "DFStringCrashUploadToBacktraceMacPlayerToken": "null",
-  "DFStringCrashUploadToBacktraceWindowsPlayerToken": "null",
-  "DFIntRakNetLoopMs": "1",
-  "DFIntServerTickRate": "60",
-  "DFIntRaycastMaxDistance": "5",
-  "DFIntWarpFactor": "2147483648",
-  "DFIntNetworkPrediction": "115",
-  "DFIntConnectionMTUSize": "900",
-  "DFIntS2PhysicsSenderRate": "300",
-  "DFIntWorldStepMax": "2147483648",
-  "DFIntOptimizePingThreshold": "50",
-  "DFIntNetworkLatencyTolerance": "1",
-  "DFIntRakNetResendRttMultiple": "1",
-  "DFIntCanHideGuiGroupId": "32380007",
-  "DFIntPlayerNetworkUpdateRate": "60",
-  "DFIntRakNetMtuValue3InBytes": "1200",
-  "DFIntRakNetMtuValue2InBytes": "1240",
-  "DFIntRakNetMtuValue1InBytes": "1280",
-  "DFIntCodecMaxIncomingPackets": "100",
-  "DFIntWaitOnRecvFromLoopEndedMS": "100",
-  "DFIntPlayerNetworkUpdateQueueSize": "20",
-  "DFIntWorldStepsOffsetAdjustRate": "-20000",
-  "DFIntMaxProcessPacketsJobScaling": "10000",
-  "DFIntLargePacketQueueSizeCutoffMB": "1000",
-  "DFIntTaskSchedulerTargetFps": "2147483647",
-  "DFIntUserIdPlayerNameCacheSize": "33554432",
-  "DFIntWaitOnUpdateNetworkLoopEndedMS": "100",
-  "DFIntMaxProcessPacketsStepsAccumulated": "0",
-  "DFIntMaxProcessPacketsStepsPerCyclic": "5000",
-  "DFIntGoogleAnalyticsLoadPlayerHundredth": "0",
-  "DFIntHttpCurlConnectionCacheSize": "134217728",
-  "DFIntUserIdPlayerNameLifetimeSeconds": "86400",
-  "DFIntRaknetBandwidthPingSendEveryXSeconds": "1",
-  "DFIntMaxMissedWorldStepsRemembered": "2147483648",
-  "DFIntReportOutputDeviceInfoRateHundredthsPercentage": "0",
-  "DFIntRaknetBandwidthInfluxHundredthsPercentageV2": "10000",
-  "DFIntReportRecordingDeviceInfoRateHundredthsPercentage": "0",
-  "DFFlagDebugPerfMode": "True",
-  "DFFlagDisableDPIScale": "True",
-  "DFFlagSimReportCPUInfo": "False",
-  "DFFlagDebugPauseVoxelizer": "True",
-  "DFFlagRakNetUseSlidingWindow4": "True",
-  "DFFlagQueueDataPingFromSendData": "True",
-  "DFFlagDebugAnalyticsSendUserId": "False",
-  "DFFlagBatchAssetApiNoFallbackOnFail": "False",
-  "DFFlagDebugRenderForceTechnologyVoxel": "True",
-  "DFFlagPlayerHumanoidPropertyUpdateRestrict": "False",
-  "DFFlagPhysicsSkipNonRealTimeHumanoidForceCalc2": "False"
-}`,
-  },
-  {
     slug: "aerial-fastflags-new-physics",
     name: "Aerial fastflags (with new physics).",
     description:
@@ -227,6 +92,8 @@ const SCRIPTS: ScriptItem[] = [
 }`,
   },
 ];
+
+const STORAGE_KEY = "fsh_admin_scripts_v1";
 
 function formatDate(iso: string) {
   try {
@@ -308,36 +175,50 @@ function MediaPreview({ media, title }: { media: Media; title: string }) {
 }
 
 export default function Page() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
+  const isAdmin = Boolean((session?.user as any)?.isAdmin);
+
+  const [adminScripts, setAdminScripts] = useState<DisplayItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as DisplayItem[];
+      if (Array.isArray(parsed)) setAdminScripts(parsed);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(adminScripts));
+    } catch {
+      // ignore
+    }
+  }, [adminScripts]);
+
+  const allScripts = useMemo(() => {
+    const bySlug = new Map<string, DisplayItem>();
+    for (const s of BASE_SCRIPTS) bySlug.set(s.slug, s);
+    for (const s of adminScripts) bySlug.set(s.slug, s); // admin overrides if same slug
+    return Array.from(bySlug.values());
+  }, [adminScripts]);
 
   const byCategory = useMemo(() => {
     return Object.fromEntries(
-      CATEGORY_ORDER.map((c) => [c, SCRIPTS.filter((s) => s.category === c)])
-    ) as Record<Category, ScriptItem[]>;
-  }, []);
+      CATEGORY_ORDER.map((c) => [c, allScripts.filter((s) => s.category === c)])
+    ) as Record<Category, DisplayItem[]>;
+  }, [allScripts]);
 
   return (
     <main>
       <section className="hero">
         <h1 className="h1">Fuck SLS HUD</h1>
-
-        <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 12 }}>
-          {status === "authenticated" ? (
-            <>
-              <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 13 }}>
-                Logged in as {session?.user?.name}
-                {(session?.user as any)?.isAdmin ? " (Admin)" : ""}
-              </span>
-              <button className="btn" onClick={() => signOut()}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <button className="btn btnPrimary" onClick={() => signIn("discord")}>
-              Login with Discord
-            </button>
-          )}
-        </div>
+        <p className="p">
+          Login is optional. Admins can add scripts from the page. Use the Copy button to copy loadstrings / fastflags.
+        </p>
 
         <div className="badges">
           <span className="badge">script</span>
@@ -347,15 +228,24 @@ export default function Page() {
         </div>
       </section>
 
+      {isAdmin && (
+        <AdminPanel
+          count={adminScripts.length}
+          onAdd={(item) => {
+            setAdminScripts((prev) => [item, ...prev]);
+          }}
+          onClear={() => {
+            setAdminScripts([]);
+          }}
+        />
+      )}
+
       <section id="scripts" className="section">
         <h2 className="sectionTitle">Scripts</h2>
 
         {CATEGORY_ORDER.map((cat) => (
           <div key={cat} className="section" style={{ marginTop: 14 }}>
-            <h3
-              className="sectionTitle"
-              style={{ textTransform: "uppercase", letterSpacing: 1 }}
-            >
+            <h3 className="sectionTitle" style={{ textTransform: "uppercase", letterSpacing: 1 }}>
               {cat} ({byCategory[cat].length})
             </h3>
 
