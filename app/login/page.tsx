@@ -52,10 +52,10 @@ export default function LoginPage() {
           <div style={{ fontWeight: 750, marginBottom: 10 }}>Why use this hub?</div>
 
           <ul style={{ margin: 0, paddingLeft: 18, color: "rgba(255,255,255,0.72)", lineHeight: 1.7 }}>
-            <li>One place for scripts and fastflags—no hunting through DMs or random links</li>
+            <li>Only website that carrys premium SLS scripts/FFlags</li>
             <li>Copy-paste loadstrings and JSON presets with a single click</li>
             <li>Admins keep the list updated and can remove bad entries</li>
-            <li>Discord sign-in keeps the hub usable only for people who should see it</li>
+            <li>Log-ins are on Discord to insure every members personal details are secure</li>
           </ul>
 
           <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
