@@ -19,6 +19,17 @@ function githubHeaders() {
   };
 }
 
+function parseIds(csv: string | undefined) {
+  return new Set(
+    (csv ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  );
+}
+
+const adminIds = parseIds(process.env.DISCORD_ADMIN_IDS);
+
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   const isAdmin = Boolean((session?.user as any)?.isAdmin);
@@ -93,6 +104,9 @@ export async function POST(req: Request) {
 
   const id = String(body?.id ?? "").trim();
   if (!id) return apiError("Missing id", 400);
+
+  // Can't blacklist admins
+  if (adminIds.has(id)) return apiError("Cannot blacklist an admin ID", 400);
 
   try {
     const { ids, sha } = await readList();
