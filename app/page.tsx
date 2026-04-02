@@ -1,4 +1,4 @@
-  "use client";
+"use client";
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -7,7 +7,6 @@ import AdminPanel, { type ScriptItem } from "./components/AdminPanel";
 
 type Category = "script" | "fflags" | "desync" | "async";
 type Media = { type: "image"; src: string; alt: string };
-
 type DisplayItem = ScriptItem & { media?: Media };
 
 const BASE_SCRIPTS: DisplayItem[] = [
@@ -34,66 +33,7 @@ const BASE_SCRIPTS: DisplayItem[] = [
       'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cortzalno666/NectoVerse-Industries-Data/refs/heads/master/Scripts%20Folder/Lock%20in.lol"))()',
     repoUrl: "https://github.com/Cortzalno666/NectoVerse-Industries-Data",
   },
-
-  {
-    slug: "async-updated-physics",
-    name: "Async updated (Physics).",
-    description: "FastFlags preset (Physics).",
-    category: "fflags",
-    tags: ["physics", "async"],
-    updated: "2026-04-02",
-    script: `{
-  "FFlagUGCValidationFixResetPhysicsError": true,
-  "DFIntS2PhysicsSenderRate": 35200,
-  "DFIntPhysicsReceiveNumParallelTasks": 12,
-  "DFIntPhysicsAnalyticsHighFrequencyIntervalSec": 20,
-  "DFFlagSimEnableStepPhysicsSelective": false,
-  "DFFlagSimEnableStepPhysics": false,
-  "DFFlagSimClearNetworkPhysicsDataForAssembly": true,
-  "DFFlagPreventReturnOfElevatedPhysicsFPS": false,
-  "DFFlagPhysicsMechanismCacheOptimizeAlloc": true,
-  "DFFlagDebugReportElevatedPhysicsFPSTOGA": false
-}`,
-  },
-  {
-    slug: "aerial-fastflags-new-physics",
-    name: "Aerial fastflags (with new physics).",
-    description:
-      "these are not as good as the one mentioned before but you can use them together if you want.",
-    category: "fflags",
-    tags: ["physics", "aerial"],
-    updated: "2026-04-02",
-    script: `{
-  "FFlagDebugPhysicsSenderDoesNotShrinkSimRadius": "true",
-  "FFlagPhysicsRadiusMinAreaGrowth": "250",
-  "FFlagPhysicsGrowRadiusWithMinArea": "true",
-  "FFlagUseNewPhysicsSmoothingFactor2": "true",
-  "FFlagPhysicsEMAInverseSmoothingFactor": "0",
-  "FFlagPhysicsEMAInverseSmoothingFactorThrottling": "0",
-  "FFlagPhysicsImprovedCyclicExecutivePredictiveThrottlingStepsAhead": "10",
-  "FFlagSimStepPhysicsUseRootBodyForBodyFilter": "true",
-  "FFlagPhysicsStepsPerSecond": "120",
-  "FFlagSimStepPhysicsSupportSelectiveAnimation": "true",
-  "FFlagSimSolverFixStepPhysicsForHumanoidTC": "true",
-  "FFlagDebugHumanoidNewPhysicsEnabled": "true"
-}`,
-  },
-  {
-    slug: "phase-shot-fastflags",
-    name: "Phase shot FastFlags",
-    description:
-      "(not guaranteed but still works sometimes)\nAlso makes it easier to softtap over tackles",
-    category: "fflags",
-    tags: ["touch", "phase-shot"],
-    updated: "2026-04-02",
-    script: `{
-  "DFIntTouchSenderMaxBandwidthBps": "-2",
-  "DFIntTouchSenderMaxBandwidthBpsScaling": "2000"
-}`,
-  },
 ];
-
-const STORAGE_KEY = "fsh_admin_scripts_v1";
 
 function formatDate(iso: string) {
   try {
@@ -178,33 +118,32 @@ export default function Page() {
   const { data: session } = useSession();
   const isAdmin = Boolean((session?.user as any)?.isAdmin);
 
-  const [adminScripts, setAdminScripts] = useState<DisplayItem[]>([]);
+  const [universalScripts, setUniversalScripts] = useState<DisplayItem[]>([]);
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "error">("idle");
+
+  async function reloadUniversal() {
+    setLoadState("loading");
+    try {
+      const res = await fetch("/api/scripts", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to load");
+      setUniversalScripts((data.items as DisplayItem[]) || []);
+      setLoadState("idle");
+    } catch {
+      setLoadState("error");
+    }
+  }
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as DisplayItem[];
-      if (Array.isArray(parsed)) setAdminScripts(parsed);
-    } catch {
-      // ignore
-    }
+    reloadUniversal();
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(adminScripts));
-    } catch {
-      // ignore
-    }
-  }, [adminScripts]);
 
   const allScripts = useMemo(() => {
     const bySlug = new Map<string, DisplayItem>();
     for (const s of BASE_SCRIPTS) bySlug.set(s.slug, s);
-    for (const s of adminScripts) bySlug.set(s.slug, s); // admin overrides if same slug
+    for (const s of universalScripts) bySlug.set(s.slug, s); // universal overrides base if same slug
     return Array.from(bySlug.values());
-  }, [adminScripts]);
+  }, [universalScripts]);
 
   const byCategory = useMemo(() => {
     return Object.fromEntries(
@@ -217,7 +156,7 @@ export default function Page() {
       <section className="hero">
         <h1 className="h1">Fuck SLS HUD</h1>
         <p className="p">
-          Login is optional. Admins can add scripts from the page. Use the Copy button to copy loadstrings / fastflags.
+          Universal scripts load from GitHub. {loadState === "loading" ? "Loading…" : loadState === "error" ? "Load failed." : ""}
         </p>
 
         <div className="badges">
@@ -230,12 +169,9 @@ export default function Page() {
 
       {isAdmin && (
         <AdminPanel
-          count={adminScripts.length}
-          onAdd={(item) => {
-            setAdminScripts((prev) => [item, ...prev]);
-          }}
-          onClear={() => {
-            setAdminScripts([]);
+          count={universalScripts.length}
+          onAdded={(items) => {
+            setUniversalScripts(items as DisplayItem[]);
           }}
         />
       )}
