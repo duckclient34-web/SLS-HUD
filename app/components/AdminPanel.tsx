@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type Category = "script" | "fflags" | "desync" | "async";
 
@@ -35,13 +35,11 @@ function todayISO() {
 }
 
 export default function AdminPanel({
-  onAdd,
-  onClear,
   count,
+  onAdded,
 }: {
-  onAdd: (item: ScriptItem) => void;
-  onClear: () => void;
   count: number;
+  onAdded: (items: ScriptItem[]) => void;
 }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("script");
@@ -50,27 +48,23 @@ export default function AdminPanel({
   const [updated, setUpdated] = useState(todayISO());
   const [script, setScript] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
-  const [imagePath, setImagePath] = useState(""); // e.g. /scripts/my.png or https://...
+  const [imagePath, setImagePath] = useState("");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const suggestedSlug = useMemo(() => slugify(name) || "new-script", [name]);
-
-  useEffect(() => {
-    if (!updated) setUpdated(todayISO());
-  }, [updated]);
 
   return (
     <div className="hero" style={{ marginTop: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontWeight: 750, marginBottom: 6 }}>Admin: Add a script</div>
+          <div style={{ fontWeight: 750, marginBottom: 6 }}>Admin: Add a script (universal)</div>
           <div style={{ color: "rgba(255,255,255,0.68)", fontSize: 13 }}>
-            Saves to this browser only (localStorage). Current admin-added: {count}
+            Saves to GitHub for everyone. Current universal scripts: {count}
           </div>
         </div>
-
-        <button className="btn" onClick={onClear} type="button">
-          Clear admin-added
-        </button>
+        <span className="pill">
+          {status === "saving" ? "Saving…" : status === "saved" ? "Saved" : status === "error" ? "Save failed" : "Ready"}
+        </span>
       </div>
 
       <div className="grid" style={{ marginTop: 12 }}>
@@ -78,12 +72,7 @@ export default function AdminPanel({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 10 }}>
             <div style={{ gridColumn: "span 6" }}>
               <div className="sectionTitle">Name</div>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. My Script"
-                style={inputStyle}
-              />
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. My Script" style={inputStyle} />
             </div>
 
             <div style={{ gridColumn: "span 3" }}>
@@ -98,57 +87,32 @@ export default function AdminPanel({
 
             <div style={{ gridColumn: "span 3" }}>
               <div className="sectionTitle">Updated (YYYY-MM-DD)</div>
-              <input value={updated} onChange={(e) => setUpdated(e.target.value)} placeholder="2026-04-02" style={inputStyle} />
+              <input value={updated} onChange={(e) => setUpdated(e.target.value)} style={inputStyle} />
             </div>
 
             <div style={{ gridColumn: "span 12" }}>
               <div className="sectionTitle">Description</div>
-              <input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="1–2 lines describing it"
-                style={inputStyle}
-              />
+              <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="1–2 lines" style={inputStyle} />
             </div>
 
             <div style={{ gridColumn: "span 6" }}>
               <div className="sectionTitle">Tags (comma separated)</div>
-              <input
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="e.g. fss, gk, defender"
-                style={inputStyle}
-              />
+              <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. fss, gk" style={inputStyle} />
             </div>
 
             <div style={{ gridColumn: "span 6" }}>
               <div className="sectionTitle">Repo URL (optional)</div>
-              <input
-                value={repoUrl}
-                onChange={(e) => setRepoUrl(e.target.value)}
-                placeholder="https://github.com/..."
-                style={inputStyle}
-              />
+              <input value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} placeholder="https://github.com/..." style={inputStyle} />
             </div>
 
             <div style={{ gridColumn: "span 12" }}>
               <div className="sectionTitle">Image path/URL (optional)</div>
-              <input
-                value={imagePath}
-                onChange={(e) => setImagePath(e.target.value)}
-                placeholder='e.g. /scripts/duck-client.webp'
-                style={inputStyle}
-              />
+              <input value={imagePath} onChange={(e) => setImagePath(e.target.value)} placeholder="e.g. /scripts/duck-client.webp" style={inputStyle} />
             </div>
 
             <div style={{ gridColumn: "span 12" }}>
               <div className="sectionTitle">Script / JSON (optional)</div>
-              <textarea
-                value={script}
-                onChange={(e) => setScript(e.target.value)}
-                placeholder="Paste loadstring(...)() or JSON here"
-                style={{ ...inputStyle, minHeight: 140, resize: "vertical" }}
-              />
+              <textarea value={script} onChange={(e) => setScript(e.target.value)} placeholder="Paste here" style={{ ...inputStyle, minHeight: 140, resize: "vertical" }} />
             </div>
 
             <div style={{ gridColumn: "span 12", display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
@@ -157,38 +121,50 @@ export default function AdminPanel({
               <button
                 className="btn btnPrimary"
                 type="button"
-                onClick={() => {
-                  const slug = suggestedSlug;
-
+                onClick={async () => {
                   const item: ScriptItem = {
-                    slug,
+                    slug: suggestedSlug,
                     name: name.trim(),
                     description: description.trim(),
                     category,
-                    tags: tags
-                      .split(",")
-                      .map((t) => t.trim())
-                      .filter(Boolean),
+                    tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
                     updated: (updated || todayISO()).trim(),
                     script: script.trim() || undefined,
                     repoUrl: repoUrl.trim() || undefined,
                     media: imagePath.trim()
-                      ? { type: "image", src: imagePath.trim(), alt: `${name.trim() || slug} preview` }
+                      ? { type: "image", src: imagePath.trim(), alt: `${name.trim() || suggestedSlug} preview` }
                       : undefined,
                   };
 
                   if (!item.name || !item.description) return;
 
-                  onAdd(item);
+                  setStatus("saving");
+                  try {
+                    const res = await fetch("/api/scripts", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(item),
+                    });
 
-                  setName("");
-                  setDescription("");
-                  setTags("");
-                  setScript("");
-                  setRepoUrl("");
-                  setImagePath("");
-                  setCategory("script");
-                  setUpdated(todayISO());
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data?.error || "Save failed");
+
+                    onAdded(data.items as ScriptItem[]);
+                    setStatus("saved");
+                    window.setTimeout(() => setStatus("idle"), 1200);
+
+                    setName("");
+                    setDescription("");
+                    setTags("");
+                    setScript("");
+                    setRepoUrl("");
+                    setImagePath("");
+                    setCategory("script");
+                    setUpdated(todayISO());
+                  } catch {
+                    setStatus("error");
+                    window.setTimeout(() => setStatus("idle"), 1500);
+                  }
                 }}
               >
                 Add script
@@ -197,7 +173,7 @@ export default function AdminPanel({
           </div>
 
           <div style={{ color: "rgba(255,255,255,0.62)", fontSize: 12, marginTop: 10 }}>
-            Tip: To host images, upload to GitHub under <code>public/scripts/</code> and use <code>/scripts/filename.webp</code>.
+            Tip: Upload images to <code>public/scripts/</code> and use <code>/scripts/filename.webp</code>.
           </div>
         </div>
       </div>
