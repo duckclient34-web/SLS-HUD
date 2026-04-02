@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Providers from "./providers";
+import AuthBar from "./components/AuthBar";
 
 export const metadata: Metadata = {
   title: "Fuck SLS HUD",
@@ -21,9 +22,14 @@ export default function RootLayout({
               <a className="brand" href="/">
                 Fuck SLS HUD
               </a>
-              <nav className="nav">
-                <a href="/#scripts">Scripts</a>
-              </nav>
+
+              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                <nav className="nav">
+                  <a href="/#scripts">Scripts</a>
+                </nav>
+
+                <AuthBar />
+              </div>
             </header>
 
             {children}
