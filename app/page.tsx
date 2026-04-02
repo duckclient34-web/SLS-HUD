@@ -1,33 +1,40 @@
+type Category = "fflags" | "desync" | "async";
+
 type ScriptItem = {
   slug: string;
   name: string;
-  summary: string;
+  description: string;
+  category: Category;
   tags: string[];
-  language: string;
   updated: string;
+  script?: string; // the loadstring line
   repoUrl?: string;
-  demoUrl?: string;
 };
 
 const SCRIPTS: ScriptItem[] = [
   {
-    slug: "log-cleaner",
-    name: "Log Cleaner",
-    summary: "Cleans noisy logs and extracts key lines into a neat output file.",
-    tags: ["cli", "automation"],
-    language: "Python",
+    slug: "duck-client",
+    name: "Duck Client",
+    description: "Script loader.",
+    category: "fflags",
+    tags: ["loader"],
     updated: "2026-04-02",
-    repoUrl: "https://github.com/yourname/log-cleaner"
+    script:
+      'loadstring(game:HttpGet("https://project-fq58s.vercel.app/api/script?token=DuckClient2026"))()',
   },
   {
-    slug: "image-resizer",
-    name: "Image Resizer",
-    summary: "Batch resizes images into web-friendly sizes for faster pages.",
-    tags: ["media", "batch"],
-    language: "Node.js",
-    updated: "2026-03-18",
-    repoUrl: "https://github.com/yourname/image-resizer"
-  }
+    slug: "lock-in",
+    name: "Lock In",
+    description:
+      "Lock in script is a script for FSS/SLS which allows defenders and gks with poop prediction lock in by locking onto the ball itself.",
+    category: "async",
+    tags: ["fss", "sls", "gk", "defender"],
+    updated: "2026-04-02",
+    script:
+      'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cortzalno666/NectoVerse-Industries-Data/refs/heads/master/Scripts%20Folder/Lock%20in.lol"))()',
+    repoUrl:
+      "https://github.com/Cortzalno666/NectoVerse-Industries-Data",
+  },
 ];
 
 function formatDate(iso: string) {
@@ -35,75 +42,96 @@ function formatDate(iso: string) {
     return new Date(iso + "T00:00:00").toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
-      day: "2-digit"
+      day: "2-digit",
     });
   } catch {
     return iso;
   }
 }
 
+const CATEGORY_ORDER: Category[] = ["fflags", "desync", "async"];
+
 export default function Page() {
+  const byCategory = Object.fromEntries(
+    CATEGORY_ORDER.map((c) => [c, SCRIPTS.filter((s) => s.category === c)])
+  ) as Record<Category, ScriptItem[]>;
+
   return (
     <main>
       <section className="hero">
-        <h1 className="h1">Showcase your scripts</h1>
+        <h1 className="h1">Script Showcase</h1>
         <p className="p">
-          A simple, clean website to list your scripts with quick details and links.
-          Edit the <code>SCRIPTS</code> array to add/remove projects.
+          Categories: <code>fflags</code>, <code>desync</code>, <code>async</code>. Edit{" "}
+          <code>SCRIPTS</code> to add more.
         </p>
 
         <div className="badges">
-          <span className="badge">Fast</span>
-          <span className="badge">Mobile-friendly</span>
-          <span className="badge">Deployed on Vercel</span>
-          <span className="badge">Easy to update</span>
+          <span className="badge">fflags</span>
+          <span className="badge">desync</span>
+          <span className="badge">async</span>
         </div>
       </section>
 
       <section id="scripts" className="section">
         <h2 className="sectionTitle">Scripts</h2>
 
-        <div className="grid">
-          {SCRIPTS.map((s) => (
-            <article key={s.slug} className="card">
-              <div className="cardTop">
-                <h3 className="cardTitle">{s.name}</h3>
-                <span className="pill">{s.language}</span>
-              </div>
+        {CATEGORY_ORDER.map((cat) => (
+          <div key={cat} className="section" style={{ marginTop: 14 }}>
+            <h3 className="sectionTitle" style={{ textTransform: "uppercase", letterSpacing: 1 }}>
+              {cat} ({byCategory[cat].length})
+            </h3>
 
-              <p className="cardDesc">{s.summary}</p>
+            <div className="grid">
+              {byCategory[cat].map((s) => (
+                <article key={s.slug} className="card">
+                  <div className="cardTop">
+                    <h3 className="cardTitle">{s.name}</h3>
+                    <span className="pill">{s.category}</span>
+                  </div>
 
-              <div className="meta">
-                {s.tags.map((t) => (
-                  <span key={t} className="kv">#{t}</span>
-                ))}
-                <span className="kv">Updated {formatDate(s.updated)}</span>
+                  <p className="cardDesc">{s.description}</p>
 
-                <div className="links">
-                  {s.repoUrl && (
-                    <a className="btn" href={s.repoUrl} target="_blank" rel="noreferrer">
-                      Repo
-                    </a>
+                  {s.script && (
+                    <pre
+                      style={{
+                        margin: "0 0 12px",
+                        padding: 12,
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.14)",
+                        background: "rgba(0,0,0,0.20)",
+                        color: "rgba(255,255,255,0.86)",
+                        overflowX: "auto",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <code>{s.script}</code>
+                    </pre>
                   )}
-                  {s.demoUrl && (
-                    <a className="btn btnPrimary" href={s.demoUrl} target="_blank" rel="noreferrer">
-                      Demo
-                    </a>
-                  )}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
 
-      <section id="about" className="section">
-        <h2 className="sectionTitle">About</h2>
-        <div className="hero">
-          <p className="p">
-            Replace the GitHub links with your real repos. Any commit to GitHub will redeploy on Vercel.
-          </p>
-        </div>
+                  <div className="meta">
+                    {s.tags.map((t) => (
+                      <span key={t} className="kv">
+                        #{t}
+                      </span>
+                    ))}
+                    <span className="kv">Updated {formatDate(s.updated)}</span>
+
+                    <div className="links">
+                      {s.repoUrl && (
+                        <a className="btn" href={s.repoUrl} target="_blank" rel="noreferrer">
+                          Repo
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
     </main>
   );
