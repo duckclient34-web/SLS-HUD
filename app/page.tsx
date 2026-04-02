@@ -2,9 +2,7 @@ import Image from "next/image";
 
 type Category = "script" | "fflags" | "desync" | "async";
 
-type Media =
-  | { type: "image"; src: string; alt: string }
-  | { type: "video"; src: string; poster?: string };
+type Media = { type: "image"; src: string; alt: string };
 
 type ScriptItem = {
   slug: string;
@@ -13,9 +11,9 @@ type ScriptItem = {
   category: Category;
   tags: string[];
   updated: string;
-  script?: string; // shown as text
+  script?: string; // shown as text (loadstring or JSON)
   repoUrl?: string;
-  media?: Media;
+  media?: Media; // image only (video removed)
 };
 
 const SCRIPTS: ScriptItem[] = [
@@ -45,10 +43,189 @@ const SCRIPTS: ScriptItem[] = [
     script:
       'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cortzalno666/NectoVerse-Industries-Data/refs/heads/master/Scripts%20Folder/Lock%20in.lol"))()',
     repoUrl: "https://github.com/Cortzalno666/NectoVerse-Industries-Data",
-    media: {
-      type: "video",
-      src: "/scripts/lock-in.mp4",
-    },
+  },
+
+  {
+    slug: "async-updated-physics",
+    name: "Async updated (Physics).",
+    description: "FastFlags preset (Physics).",
+    category: "fflags",
+    tags: ["physics", "async"],
+    updated: "2026-04-02",
+    script: `{
+  "FFlagUGCValidationFixResetPhysicsError": true,
+  "DFIntS2PhysicsSenderRate": 35200,
+  "DFIntPhysicsReceiveNumParallelTasks": 12,
+  "DFIntPhysicsAnalyticsHighFrequencyIntervalSec": 20,
+  "DFFlagSimEnableStepPhysicsSelective": false,
+  "DFFlagSimEnableStepPhysics": false,
+  "DFFlagSimClearNetworkPhysicsDataForAssembly": true,
+  "DFFlagPreventReturnOfElevatedPhysicsFPS": false,
+  "DFFlagPhysicsMechanismCacheOptimizeAlloc": true,
+  "DFFlagDebugReportElevatedPhysicsFPSTOGA": false
+}`,
+  },
+  {
+    slug: "no-reach-fastflag-better-with-async",
+    name: "No reach fastflag (Better effect with async)",
+    description: "FastFlags preset (no reach).",
+    category: "fflags",
+    tags: ["network", "async"],
+    updated: "2026-04-02",
+    script: `{
+  "FStringCoreScriptBacktraceErrorUploadToken": "null",
+  "FStringInGameMenuChromeForcedUserIds": "1353919681",
+  "FLogNetwork": "7",
+  "FIntLmsClientRollout2": "0",
+  "FIntTerrainArraySliceSize": "0",
+  "FIntRenderShadowIntensity": "0",
+  "FIntDefaultMeshCacheSizeMB": "256",
+  "FIntRakNetResendBufferArrayLength": "1024",
+  "FIntUGCValidationTorsoThresholdSide": "200",
+  "FIntUGCValidationTorsoThresholdBack": "200",
+  "FIntNetworkPhysicsLagCompensationMs": "120",
+  "FIntUGCValidationTorsoThresholdFront": "200",
+  "FIntUGCValidationLeftLegThresholdSide": "36",
+  "FIntUGCValidationLeftLegThresholdBack": "40",
+  "FIntUGCValidationLeftArmThresholdSide": "40",
+  "FIntUGCValidationLeftArmThresholdBack": "23",
+  "FIntUGCValidationRightLegThresholdSide": "76",
+  "FIntUGCValidationRightLegThresholdBack": "80",
+  "FIntUGCValidationRightArmThresholdSide": "80",
+  "FIntUGCValidationRightArmThresholdBack": "46",
+  "FIntUGCValidationLeftLegThresholdFront": "40",
+  "FIntUGCValidationLeftArmThresholdFront": "27",
+  "FIntUGCValidationRightLegThresholdFront": "80",
+  "FIntUGCValidationRightArmThresholdFront": "50",
+  "FIntRakNetDatagramMessageIdArrayLength": "1024",
+  "FIntMeshContentProviderForceCacheSize": "268435456",
+  "FIntEmotesAnimationsPerPlayerCacheSize": "16777216",
+  "FFlagBatchAssetApi": "True",
+  "FFlagTerrainEnable": "True",
+  "FFlagDisablePostFx": "True",
+  "FFlagOptimizeNetwork": "True",
+  "FFlagPreloadAllFonts": "True",
+  "FFlagLuaAppSystemBar": "False",
+  "FFlagDontCreatePingJob": "True",
+  "FFlagAdServiceEnabled": "False",
+  "FFlagReconnectDisabled": "True",
+  "FFlagTopBarUseNewBadge": "True",
+  "FFlagLuaAppExitModal2": "False",
+  "FFlagEnableInGameMenuV3": "True",
+  "FFlagDisableNewIGMinDUA": "True",
+  "FFlagEnableV3MenuABTest3": "True",
+  "FFlagGpuGeometryManager7": "True",
+  "FFlagRenderDisableShadows": "False",
+  "FFlagOptimizeServerTickRate": "True",
+  "FFlagOptimizeNetworkRouting": "True",
+  "FFlagLuaAppExitModalDoNotShow": "True",
+  "FFlagOptimizeNetworkTransport": "True",
+  "FFlagEnableInGameMenuControls": "False",
+  "FFlagEnableMenuControlsABTest": "False",
+  "FFlagCoreGuiTypeSelfViewPresent": "False",
+  "FFlagAnimationClipMemCacheEnabled": "True",
+  "FFlagEnableInGameMenuModernization": "False",
+  "FFlagEnableMenuModernizationABTest": "False",
+  "FFlagEnableInGameMenuChromeABTest2": "False",
+  "FFlagDebugForceFutureIsBrightPhase2": "True",
+  "FFlagDebugForceFutureIsBrightPhase3": "True",
+  "FFlagEnableMenuModernizationABTest2": "False",
+  "FFlagInGameMenuV1FullScreenTitleBar": "False",
+  "FFlagHandleAltEnterFullscreenManually": "False",
+  "FFlagEnableReportAbuseMenuRoactABTest2": "False",
+  "FFlagTaskSchedulerLimitTargetFpsTo2402": "False",
+  "DFStringRobloxAnalyticsURL": "null",
+  "DFStringHttpPointsReporterUrl": "null",
+  "DFStringAltHttpPointsReporterUrl": "null",
+  "DFStringTelegrafHTTPTransportUrl": "null",
+  "DFStringAltTelegrafHTTPTransportUrl": "null",
+  "DFStringCrashUploadToBacktraceBaseUrl": "null",
+  "DFStringAnalyticsEventStreamUrlEndpoint": "null",
+  "DFStringCrashUploadToBacktraceMacPlayerToken": "null",
+  "DFStringCrashUploadToBacktraceWindowsPlayerToken": "null",
+  "DFIntRakNetLoopMs": "1",
+  "DFIntServerTickRate": "60",
+  "DFIntRaycastMaxDistance": "5",
+  "DFIntWarpFactor": "2147483648",
+  "DFIntNetworkPrediction": "115",
+  "DFIntConnectionMTUSize": "900",
+  "DFIntS2PhysicsSenderRate": "300",
+  "DFIntWorldStepMax": "2147483648",
+  "DFIntOptimizePingThreshold": "50",
+  "DFIntNetworkLatencyTolerance": "1",
+  "DFIntRakNetResendRttMultiple": "1",
+  "DFIntCanHideGuiGroupId": "32380007",
+  "DFIntPlayerNetworkUpdateRate": "60",
+  "DFIntRakNetMtuValue3InBytes": "1200",
+  "DFIntRakNetMtuValue2InBytes": "1240",
+  "DFIntRakNetMtuValue1InBytes": "1280",
+  "DFIntCodecMaxIncomingPackets": "100",
+  "DFIntWaitOnRecvFromLoopEndedMS": "100",
+  "DFIntPlayerNetworkUpdateQueueSize": "20",
+  "DFIntWorldStepsOffsetAdjustRate": "-20000",
+  "DFIntMaxProcessPacketsJobScaling": "10000",
+  "DFIntLargePacketQueueSizeCutoffMB": "1000",
+  "DFIntTaskSchedulerTargetFps": "2147483647",
+  "DFIntUserIdPlayerNameCacheSize": "33554432",
+  "DFIntWaitOnUpdateNetworkLoopEndedMS": "100",
+  "DFIntMaxProcessPacketsStepsAccumulated": "0",
+  "DFIntMaxProcessPacketsStepsPerCyclic": "5000",
+  "DFIntGoogleAnalyticsLoadPlayerHundredth": "0",
+  "DFIntHttpCurlConnectionCacheSize": "134217728",
+  "DFIntUserIdPlayerNameLifetimeSeconds": "86400",
+  "DFIntRaknetBandwidthPingSendEveryXSeconds": "1",
+  "DFIntMaxMissedWorldStepsRemembered": "2147483648",
+  "DFIntReportOutputDeviceInfoRateHundredthsPercentage": "0",
+  "DFIntRaknetBandwidthInfluxHundredthsPercentageV2": "10000",
+  "DFIntReportRecordingDeviceInfoRateHundredthsPercentage": "0",
+  "DFFlagDebugPerfMode": "True",
+  "DFFlagDisableDPIScale": "True",
+  "DFFlagSimReportCPUInfo": "False",
+  "DFFlagDebugPauseVoxelizer": "True",
+  "DFFlagRakNetUseSlidingWindow4": "True",
+  "DFFlagQueueDataPingFromSendData": "True",
+  "DFFlagDebugAnalyticsSendUserId": "False",
+  "DFFlagBatchAssetApiNoFallbackOnFail": "False",
+  "DFFlagDebugRenderForceTechnologyVoxel": "True",
+  "DFFlagPlayerHumanoidPropertyUpdateRestrict": "False",
+  "DFFlagPhysicsSkipNonRealTimeHumanoidForceCalc2": "False"
+}`,
+  },
+  {
+    slug: "aerial-fastflags-new-physics",
+    name: "Aerial fastflags (with new physics).",
+    description:
+      "these are not as good as the one mentioned before but you can use them together if you want.",
+    category: "fflags",
+    tags: ["physics", "aerial"],
+    updated: "2026-04-02",
+    script: `{
+  "FFlagDebugPhysicsSenderDoesNotShrinkSimRadius": "true",
+  "FFlagPhysicsRadiusMinAreaGrowth": "250",
+  "FFlagPhysicsGrowRadiusWithMinArea": "true",
+  "FFlagUseNewPhysicsSmoothingFactor2": "true",
+  "FFlagPhysicsEMAInverseSmoothingFactor": "0",
+  "FFlagPhysicsEMAInverseSmoothingFactorThrottling": "0",
+  "FFlagPhysicsImprovedCyclicExecutivePredictiveThrottlingStepsAhead": "10",
+  "FFlagSimStepPhysicsUseRootBodyForBodyFilter": "true",
+  "FFlagPhysicsStepsPerSecond": "120",
+  "FFlagSimStepPhysicsSupportSelectiveAnimation": "true",
+  "FFlagSimSolverFixStepPhysicsForHumanoidTC": "true",
+  "FFlagDebugHumanoidNewPhysicsEnabled": "true"
+}`,
+  },
+  {
+    slug: "phase-shot-fastflags",
+    name: "Phase shot FastFlags",
+    description:
+      "(not guaranteed but still works sometimes)\nAlso makes it easier to softtap over tackles",
+    category: "fflags",
+    tags: ["touch", "phase-shot"],
+    updated: "2026-04-02",
+    script: `{
+  "DFIntTouchSenderMaxBandwidthBps": "-2",
+  "DFIntTouchSenderMaxBandwidthBpsScaling": "2000"
+}`,
   },
 ];
 
@@ -67,29 +244,6 @@ function formatDate(iso: string) {
 const CATEGORY_ORDER: Category[] = ["script", "fflags", "desync", "async"];
 
 function MediaPreview({ media, title }: { media: Media; title: string }) {
-  if (media.type === "image") {
-    return (
-      <div
-        style={{
-          margin: "0 0 12px",
-          borderRadius: 14,
-          border: "1px solid rgba(255,255,255,0.14)",
-          overflow: "hidden",
-          background: "rgba(0,0,0,0.20)",
-        }}
-      >
-        <Image
-          src={media.src}
-          alt={media.alt || title}
-          width={1200}
-          height={675}
-          style={{ width: "100%", height: "auto", display: "block" }}
-          priority={false}
-        />
-      </div>
-    );
-  }
-
   return (
     <div
       style={{
@@ -100,13 +254,13 @@ function MediaPreview({ media, title }: { media: Media; title: string }) {
         background: "rgba(0,0,0,0.20)",
       }}
     >
-      <video
+      <Image
         src={media.src}
-        poster={media.poster}
-        controls
-        playsInline
-        preload="metadata"
+        alt={media.alt || title}
+        width={1200}
+        height={675}
         style={{ width: "100%", height: "auto", display: "block" }}
+        priority={false}
       />
     </div>
   );
