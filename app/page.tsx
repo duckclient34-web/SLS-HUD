@@ -326,6 +326,7 @@ export default function Page() {
             <>
               <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 13 }}>
                 Logged in as {session?.user?.name}
+                {(session?.user as any)?.isAdmin ? " (Admin)" : ""}
               </span>
               <button className="btn" onClick={() => signOut()}>
                 Logout
