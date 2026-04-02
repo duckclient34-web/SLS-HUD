@@ -17,7 +17,6 @@ async function getBlacklist(): Promise<Set<string>> {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // allow next-auth + next internal files
   if (
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
@@ -26,14 +25,21 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // require login for everything else
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token) {
-    const signInUrl = new URL("/api/auth/signin", req.url);
-    return NextResponse.redirect(signInUrl);
+  // Allow the custom login page
+  if (pathname === "/login") {
+    return NextResponse.next();
   }
 
-  // If admin, never block
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  // If not logged in, send to nice login page
+  if (!token) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Admins can never be blocked
   const isAdmin = Boolean((token as any).isAdmin);
   if (isAdmin) return NextResponse.next();
 
