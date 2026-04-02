@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "slug": "ddd",
+    "name": "ddd",
+    "description": "ddd",
+    "category": "script",
+    "tags": [
+      "dd"
+    ],
+    "updated": "2026-04-02",
+    "script": "ddd"
+  }
+]
