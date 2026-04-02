@@ -2,10 +2,11 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Providers from "./providers";
 import AuthBar from "./components/AuthBar";
+import SiteNav from "./components/SiteNav";
 
 export const metadata: Metadata = {
   title: "Fuck SLS HUD",
-  description: "A simple site to list scripts and fastflags",
+  description: "Script hub — loaders, fastflags, presets",
 };
 
 export default function RootLayout({
@@ -18,16 +19,17 @@ export default function RootLayout({
       <body>
         <Providers>
           <div className="container">
-            <header className="header">
+            <header className="site-header">
               <a className="brand" href="/">
+                <span className="brand-mark" aria-hidden="true">
+                  SH
+                </span>
                 Fuck SLS HUD
               </a>
 
-              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                <nav className="nav">
-                  <a href="/#scripts">Scripts</a>
-                </nav>
+              <SiteNav />
 
+              <div className="header-actions">
                 <AuthBar />
               </div>
             </header>
