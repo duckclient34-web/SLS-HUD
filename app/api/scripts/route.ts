@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "../../../lib/auth";
 
 type Category = "script" | "fflags" | "desync" | "async";
 
@@ -36,7 +36,10 @@ function githubHeaders() {
 async function readGithubJson(): Promise<{ items: ScriptItem[]; sha: string }> {
   if (!repo || !token) throw new Error("Missing GITHUB_REPO or GITHUB_TOKEN");
 
-  const url = `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(filePath)}?ref=${encodeURIComponent(branch)}`;
+  const url = `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(
+    filePath
+  )}?ref=${encodeURIComponent(branch)}`;
+
   const res = await fetch(url, { headers: githubHeaders(), cache: "no-store" });
 
   if (!res.ok) {
@@ -44,7 +47,7 @@ async function readGithubJson(): Promise<{ items: ScriptItem[]; sha: string }> {
     throw new Error(`GitHub read failed: ${res.status} ${text}`);
   }
 
-  const data = await res.json() as { content: string; sha: string; encoding: string };
+  const data = (await res.json()) as { content: string; sha: string };
   const raw = Buffer.from(data.content, "base64").toString("utf8");
   const parsed = JSON.parse(raw);
 
