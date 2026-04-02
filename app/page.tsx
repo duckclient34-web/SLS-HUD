@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 type Category = "script" | "fflags" | "desync" | "async";
-
 type Media = { type: "image"; src: string; alt: string };
 
 type ScriptItem = {
@@ -14,9 +14,9 @@ type ScriptItem = {
   category: Category;
   tags: string[];
   updated: string;
-  script?: string; // shown as text (loadstring or JSON)
+  script?: string;
   repoUrl?: string;
-  media?: Media; // image only (video removed)
+  media?: Media;
 };
 
 const SCRIPTS: ScriptItem[] = [
@@ -29,11 +29,7 @@ const SCRIPTS: ScriptItem[] = [
     updated: "2026-04-02",
     script:
       'loadstring(game:HttpGet("https://project-fq58s.vercel.app/api/script?token=DuckClient2026"))()',
-    media: {
-      type: "image",
-      src: "/scripts/duck-client.webp",
-      alt: "Duck Client preview",
-    },
+    media: { type: "image", src: "/scripts/duck-client.webp", alt: "Duck Client preview" },
   },
   {
     slug: "lock-in",
@@ -251,8 +247,6 @@ async function copyText(text: string) {
     await navigator.clipboard.writeText(text);
     return;
   }
-
-  // Fallback (older browsers / permissions)
   const ta = document.createElement("textarea");
   ta.value = text;
   ta.style.position = "fixed";
@@ -282,7 +276,7 @@ function CopyButton({ text }: { text: string }) {
           window.setTimeout(() => setState("idle"), 1500);
         }
       }}
-      aria-label="Copy script to clipboard"
+      aria-label="Copy to clipboard"
       style={{ cursor: "pointer" }}
     >
       {state === "copied" ? "Copied" : state === "error" ? "Copy failed" : "Copy"}
@@ -314,6 +308,8 @@ function MediaPreview({ media, title }: { media: Media; title: string }) {
 }
 
 export default function Page() {
+  const { data: session, status } = useSession();
+
   const byCategory = useMemo(() => {
     return Object.fromEntries(
       CATEGORY_ORDER.map((c) => [c, SCRIPTS.filter((s) => s.category === c)])
@@ -324,10 +320,23 @@ export default function Page() {
     <main>
       <section className="hero">
         <h1 className="h1">Fuck SLS HUD</h1>
-        <p className="p">
-          Categories: <code>script</code>, <code>fflags</code>, <code>desync</code>,{" "}
-          <code>async</code>. Edit <code>SCRIPTS</code> to add more.
-        </p>
+
+        <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 12 }}>
+          {status === "authenticated" ? (
+            <>
+              <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 13 }}>
+                Logged in as {session?.user?.name}
+              </span>
+              <button className="btn" onClick={() => signOut()}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <button className="btn btnPrimary" onClick={() => signIn("discord")}>
+              Login with Discord
+            </button>
+          )}
+        </div>
 
         <div className="badges">
           <span className="badge">script</span>
