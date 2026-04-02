@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
 function parseIds(csv: string | undefined) {
@@ -12,7 +12,7 @@ function parseIds(csv: string | undefined) {
 
 const adminIds = parseIds(process.env.DISCORD_ADMIN_IDS);
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID ?? "",
@@ -40,7 +40,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+});
 
-const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
