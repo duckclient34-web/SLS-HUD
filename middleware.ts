@@ -33,6 +33,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
+  // If admin, never block
+  const isAdmin = Boolean((token as any).isAdmin);
+  if (isAdmin) return NextResponse.next();
+
   const discordId =
     (token as any).discordId ??
     (typeof token.sub === "string" ? token.sub : undefined);
