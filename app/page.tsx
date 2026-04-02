@@ -1,4 +1,10 @@
-type Category = "fflags" | "desync" | "async";
+import Image from "next/image";
+
+type Category = "script" | "fflags" | "desync" | "async";
+
+type Media =
+  | { type: "image"; src: string; alt: string }
+  | { type: "video"; src: string; poster?: string };
 
 type ScriptItem = {
   slug: string;
@@ -7,8 +13,9 @@ type ScriptItem = {
   category: Category;
   tags: string[];
   updated: string;
-  script?: string; // the loadstring line
+  script?: string; // shown as text
   repoUrl?: string;
+  media?: Media;
 };
 
 const SCRIPTS: ScriptItem[] = [
@@ -16,24 +23,32 @@ const SCRIPTS: ScriptItem[] = [
     slug: "duck-client",
     name: "Duck Client",
     description: "Script loader.",
-    category: "fflags",
+    category: "script",
     tags: ["loader"],
     updated: "2026-04-02",
     script:
       'loadstring(game:HttpGet("https://project-fq58s.vercel.app/api/script?token=DuckClient2026"))()',
+    media: {
+      type: "image",
+      src: "/scripts/duck-client.webp",
+      alt: "Duck Client preview",
+    },
   },
   {
     slug: "lock-in",
     name: "Lock In",
     description:
       "Lock in script is a script for FSS/SLS which allows defenders and gks with poop prediction lock in by locking onto the ball itself.",
-    category: "async",
+    category: "script",
     tags: ["fss", "sls", "gk", "defender"],
     updated: "2026-04-02",
     script:
       'loadstring(game:HttpGet("https://raw.githubusercontent.com/Cortzalno666/NectoVerse-Industries-Data/refs/heads/master/Scripts%20Folder/Lock%20in.lol"))()',
-    repoUrl:
-      "https://github.com/Cortzalno666/NectoVerse-Industries-Data",
+    repoUrl: "https://github.com/Cortzalno666/NectoVerse-Industries-Data",
+    media: {
+      type: "video",
+      src: "/scripts/lock-in.mp4",
+    },
   },
 ];
 
@@ -49,7 +64,53 @@ function formatDate(iso: string) {
   }
 }
 
-const CATEGORY_ORDER: Category[] = ["fflags", "desync", "async"];
+const CATEGORY_ORDER: Category[] = ["script", "fflags", "desync", "async"];
+
+function MediaPreview({ media, title }: { media: Media; title: string }) {
+  if (media.type === "image") {
+    return (
+      <div
+        style={{
+          margin: "0 0 12px",
+          borderRadius: 14,
+          border: "1px solid rgba(255,255,255,0.14)",
+          overflow: "hidden",
+          background: "rgba(0,0,0,0.20)",
+        }}
+      >
+        <Image
+          src={media.src}
+          alt={media.alt || title}
+          width={1200}
+          height={675}
+          style={{ width: "100%", height: "auto", display: "block" }}
+          priority={false}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        margin: "0 0 12px",
+        borderRadius: 14,
+        border: "1px solid rgba(255,255,255,0.14)",
+        overflow: "hidden",
+        background: "rgba(0,0,0,0.20)",
+      }}
+    >
+      <video
+        src={media.src}
+        poster={media.poster}
+        controls
+        playsInline
+        preload="metadata"
+        style={{ width: "100%", height: "auto", display: "block" }}
+      />
+    </div>
+  );
+}
 
 export default function Page() {
   const byCategory = Object.fromEntries(
@@ -61,11 +122,12 @@ export default function Page() {
       <section className="hero">
         <h1 className="h1">Script Showcase</h1>
         <p className="p">
-          Categories: <code>fflags</code>, <code>desync</code>, <code>async</code>. Edit{" "}
-          <code>SCRIPTS</code> to add more.
+          Categories: <code>script</code>, <code>fflags</code>, <code>desync</code>,{" "}
+          <code>async</code>. Edit <code>SCRIPTS</code> to add more.
         </p>
 
         <div className="badges">
+          <span className="badge">script</span>
           <span className="badge">fflags</span>
           <span className="badge">desync</span>
           <span className="badge">async</span>
@@ -77,7 +139,10 @@ export default function Page() {
 
         {CATEGORY_ORDER.map((cat) => (
           <div key={cat} className="section" style={{ marginTop: 14 }}>
-            <h3 className="sectionTitle" style={{ textTransform: "uppercase", letterSpacing: 1 }}>
+            <h3
+              className="sectionTitle"
+              style={{ textTransform: "uppercase", letterSpacing: 1 }}
+            >
               {cat} ({byCategory[cat].length})
             </h3>
 
@@ -90,6 +155,8 @@ export default function Page() {
                   </div>
 
                   <p className="cardDesc">{s.description}</p>
+
+                  {s.media && <MediaPreview media={s.media} title={s.name} />}
 
                   {s.script && (
                     <pre
