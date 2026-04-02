@@ -13,21 +13,25 @@ export default function LoginPage() {
           gap: 14,
         }}
       >
-        <section className="hero" style={{ marginTop: 0 }}>
-          <div className="pill" style={{ display: "inline-flex", marginBottom: 12 }}>
-            Script hub
-          </div>
-
+        <section className="hero-shell" style={{ marginTop: 0 }}>
+          <p className="welcome-comment">// Access the hub</p>
           <h1 className="h1" style={{ marginBottom: 10 }}>
             Sign in with Discord
           </h1>
-
           <p className="p" style={{ marginBottom: 18 }}>
             This is the script hub: loaders, flags, and presets in one layout. Sign in with Discord to
             open the list; blocked accounts can’t use the site after login.
           </p>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <button
               className="btn btnPrimary"
               onClick={() => signIn("discord", { callbackUrl: "/" })}
@@ -35,31 +39,48 @@ export default function LoginPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 10,
-                padding: "10px 14px",
+                padding: "12px 18px",
                 borderRadius: 14,
                 fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
               }}
             >
               <DiscordMark />
               Continue with Discord
             </button>
-
             <span className="kv">You’ll be redirected back automatically.</span>
           </div>
         </section>
 
-        <aside className="card" style={{ gridColumn: "span 1" }}>
-          <div style={{ fontWeight: 750, marginBottom: 10 }}>Why use this hub?</div>
-
-          <ul style={{ margin: 0, paddingLeft: 18, color: "rgba(255,255,255,0.72)", lineHeight: 1.7 }}>
-            <li>Only website that carrys premium SLS scripts/FFlags</li>
+        <aside className="card" style={{ gridColumn: "span 1", padding: 20 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              marginBottom: 12,
+            }}
+          >
+            Why use this hub?
+          </div>
+          <ul
+            style={{
+              margin: 0,
+              paddingLeft: 18,
+              color: "var(--muted)",
+              lineHeight: 1.75,
+              fontSize: 13,
+            }}
+          >
+            <li>One place for scripts and fastflags—no hunting through DMs or random links</li>
             <li>Copy-paste loadstrings and JSON presets with a single click</li>
             <li>Admins keep the list updated and can remove bad entries</li>
-            <li>Log-ins are on Discord to insure every members personal details are secure</li>
+            <li>Discord sign-in keeps the hub usable only for people who should see it</li>
           </ul>
-
-          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-            <div className="kv">
+          <div style={{ marginTop: 16 }}>
+            <div className="kv" style={{ fontSize: 12 }}>
               Tip: after you sign in, bookmark this page so you can open the hub in one tap.
             </div>
           </div>
