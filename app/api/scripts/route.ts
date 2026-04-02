@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../lib/auth";
 
-type Category = "script" | "fflags" | "desync" | "async";
+type Category = "script" | "fflags";
 
 type ScriptItem = {
   slug: string;
@@ -41,7 +41,6 @@ async function readGithubJson(): Promise<{ items: ScriptItem[]; sha: string }> {
   )}?ref=${encodeURIComponent(branch)}`;
 
   const res = await fetch(url, { headers: githubHeaders(), cache: "no-store" });
-
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`GitHub read failed: ${res.status} ${text}`);
@@ -50,7 +49,6 @@ async function readGithubJson(): Promise<{ items: ScriptItem[]; sha: string }> {
   const data = (await res.json()) as { content: string; sha: string };
   const raw = Buffer.from(data.content, "base64").toString("utf8");
   const parsed = JSON.parse(raw);
-
   if (!Array.isArray(parsed)) throw new Error("scripts.json must be a JSON array");
   return { items: parsed as ScriptItem[], sha: data.sha };
 }
@@ -78,6 +76,13 @@ async function writeGithubJson(items: ScriptItem[], sha: string) {
   }
 }
 
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  const isAdmin = Boolean((session?.user as any)?.isAdmin);
+  if (!isAdmin) return null;
+  return session;
+}
+
 export async function GET() {
   try {
     const { items } = await readGithubJson();
@@ -88,9 +93,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  const isAdmin = Boolean((session?.user as any)?.isAdmin);
-  if (!isAdmin) return apiError("Forbidden", 403);
+  const session = await requireAdmin();
+  if (!session) return apiError("Forbidden", 403);
 
   let incoming: ScriptItem;
   try {
@@ -110,5 +114,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, items: next });
   } catch (e: any) {
     return apiError(e?.message ?? "Failed to save script");
+  }
+}
+
+export async function DELETE(req: Request) {
+  const session = await requireAdmin();
+  if (!session) return apiError("Forbidden", 403);
+
+  const url = new URL(req.url);
+  const slug = url.searchParams.get("slug")?.trim();
+  if (!slug) return apiError("Missing slug", 400);
+
+  try {
+    const { items, sha } = await readGithubJson();
+    const next = items.filter((x) => x.slug !== slug);
+    await writeGithubJson(next, sha);
+    return NextResponse.json({ ok: true, items: next });
+  } catch (e: any) {
+    return apiError(e?.message ?? "Failed to delete script");
   }
 }
